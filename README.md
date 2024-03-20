@@ -1,2 +1,2 @@
-# python-release-action
-Release Python application artifacts: source and wheel distribustions, Debian packages
+# python-package-action
+Create Python application packages: source, wheel and Debian distributions
