@@ -28,7 +28,7 @@ inputs:
   debian-app-command:
     description: 'Debian application build command (dh-virtualenv available)'
     required: false
-    default: 'dpkg-buildpackage -us -ui -uc --buildinfo-option=-udist --buildinfo-option=-Odist/package.buildinfo --changes-option=-udist --changes-option=-Odist/package.changes'
+    default: 'dpkg-buildpackage -us -ui -uc -tc'
 
 runs:
   using: 'composite'
@@ -42,6 +42,31 @@ runs:
       run: |
         python -m pip install --upgrade pip
         pip install .
+        mkdir -p dist
+    - if: ${{ inputs.debian-dist-type == 'library' }}
+      name: Create debian distribution (library)
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ruby ruby-dev rubygems build-essential
+        sudo gem install -N fpm
+        
+        eval sudo -E ${{ inputs.debian-lib-command }}
+    - if: ${{ inputs.debian-dist-type == 'application' }}
+      name: Create debian distribution (application)
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential debhelper devscripts equivs dh-virtualenv python3-virtualenv
+        
+        eval sudo -E ${{ inputs.debian-app-command }}
+        
+        # Copy debian package to dist folder if generated out of tree
+        cp -f ../*.deb dist
+        
+        # Clean up dist folder
+        shopt -s extglob
+        rm -f dist/!(*.deb)
     - if: ${{ inputs.add-source-dist == 'true' }}
       name: Create source distribution
       shell: bash
@@ -52,18 +77,3 @@ runs:
       run: |
         pip install wheel
         python setup.py bdist_wheel
-    - if: ${{ inputs.debian-dist-type == 'library' }}
-      name: Create debian distribution (library)
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ruby ruby-dev rubygems build-essential
-        sudo gem install -N fpm
-        eval sudo -E ${{ inputs.debian-lib-command }}
-    - if: ${{ inputs.debian-dist-type == 'application' }}
-      name: Create debian distribution (application)
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential debhelper devscripts equivs dh-virtualenv python3-virtualenv
-        eval sudo -E ${{ inputs.debian-app-command }}

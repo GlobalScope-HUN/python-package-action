@@ -123,8 +123,5 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.repository.name }}
-        path: |
-          dist/${{ github.event.repository.name }}-*.tar.gz
-          dist/${{ github.event.repository.name }}-*.whl
-          dist/${{ github.event.repository.name }}_*.deb
+        path: dist/*
         if-no-files-found: error
