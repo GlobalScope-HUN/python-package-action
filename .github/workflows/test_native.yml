@@ -1,4 +1,4 @@
-name: Test native Python packaging
+name: Test platform independent Python packaging
 
 on:
   pull_request:
@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up test environment
-        run: cp -R native/test/* .
+        run: cp -a test/. .
 
       - name: Create library packages
         uses: ./native
@@ -24,7 +24,7 @@ jobs:
         run: |
           set -e
           ls dist/test-module-1.0.0.tar.gz
-          ls dist/test_module-1.0.0-py3-none-any.whl
+          ls dist/test_module-1.0.0-py3-none-linux_x86_64.whl
           ls dist/python3-test-module_1.0.0_all.deb
 
   test-application:
@@ -33,9 +33,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up test environment
-        run: cp -R native/test/* .
+        run: cp -a test/. .
 
       - name: Create application packages
         uses: ./native
@@ -46,5 +46,5 @@ jobs:
         run: |
           set -e
           ls dist/test-module-1.0.0.tar.gz
-          ls dist/test_module-1.0.0-py3-none-any.whl
-          ls dist/test-module_1.0.0_all.deb
+          ls dist/test_module-1.0.0-py3-none-linux_x86_64.whl
+          ls dist/test-module_1.0.0_amd64.deb
