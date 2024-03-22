@@ -19,9 +19,7 @@ jobs:
         uses: ./cross
         with:
           devcontainer-config: 'arm32v7'
-          devcontainer-command: |
-            pip install wheel
-            python setup.py sdist bdist_wheel
+          devcontainer-command: python setup.py sdist bdist_wheel
 
       - name: Assert packages have created
         run: |
@@ -43,12 +41,31 @@ jobs:
         uses: ./cross
         with:
           devcontainer-config: 'arm64v8'
-          devcontainer-command: |
-            pip install wheel
-            python setup.py sdist bdist_wheel
+          devcontainer-command: python setup.py sdist bdist_wheel
 
       - name: Assert packages have created
         run: |
           set -e
-          ls test/dist/test-module-1.0.0.tar.gz
-          ls test/dist/test_module-1.0.0-py3-none-linux_aarch64.whl
+          ls dist/test-module-1.0.0.tar.gz
+          ls dist/test_module-1.0.0-py3-none-linux_aarch64.whl
+
+  test-amd64:
+    name: Test creating amd64 packages
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up test environment
+        run: cp -a test/. .
+
+      - name: Create packages
+        uses: ./cross
+        with:
+          devcontainer-command: python setup.py sdist bdist_wheel
+
+      - name: Assert packages have created
+        run: |
+          set -e
+          ls dist/test-module-1.0.0.tar.gz
+          ls dist/test_module-1.0.0-py3-none-linux_x86_64.whl

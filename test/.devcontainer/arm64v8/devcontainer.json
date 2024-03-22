@@ -1,6 +1,5 @@
 {
 	"name": "arm64v8",
 	"image": "arm64v8/python:3.9-bullseye",
-	"privileged": true,
-	"workspaceFolder": "/workspaces/python-package-action/test"
+	"privileged": true
 }
