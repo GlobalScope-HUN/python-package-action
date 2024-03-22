@@ -5,6 +5,10 @@ branding:
   color: 'yellow'
 
 inputs:
+  package-version:
+    description: 'Package version'
+    required: false
+    default: ''
   is-cross-platform:
     description: 'Is cross platform build?'
     required: false
@@ -61,7 +65,15 @@ runs:
       id: set-env
       shell: bash
       run: |
-        echo ::set-env name=VERSION::$(echo ${GITHUB_REF#refs/tags/v})
+        VERSION_REGEX="^[0-9]+\.[0-9]+\.[0-9]+$"
+        if [[ "${{ inputs.package-version }}" =~ $VERSION_REGEX ]]; then
+          echo ::set-env name=VERSION::${{ inputs.package-version }}
+        elif [[ "${GITHUB_REF#refs/tags/v}" =~ $VERSION_REGEX ]]; then
+          echo ::set-env name=VERSION::$(echo ${GITHUB_REF#refs/tags/v})
+        else
+          echo "Error: Invalid version"
+          exit 1
+        fi
     - name: Update version in setup.py
       shell: bash
       run: sed -i "s/version='.*',/version='${VERSION}',/" setup.py
@@ -75,7 +87,7 @@ runs:
         export DEBFULLNAME="GitHub Action"
         dch -v $VERSION -D stable "Release ${VERSION}"
 
-    - if: ${{ is-cross-platform != 'true' }}
+    - if: ${{ inputs.is-cross-platform != 'true' }}
       name: Build native or platform independent packages
       uses: ./native
       with:
@@ -86,7 +98,7 @@ runs:
         debian-lib-command: ${{ inputs.debian-lib-command }}
         debian-app-command: ${{ inputs.debian-app-command }}
 
-    - if: ${{ is-cross-platform == 'true' }}
+    - if: ${{ inputs.is-cross-platform == 'true' }}
       name: Build cross platform packages via devcontainer
       uses: ./cross
       with:
