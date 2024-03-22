@@ -1,8 +1,8 @@
-name: 'Python package action'
-description: 'Create Python application packages: source, wheel and Debian distributions'
+name: 'Python cross-platform package action'
+description: 'Create cross-platform Python distribution packages with QEMU, Docker buildx, and Devcontainer'
 branding:
   icon: 'package'
-  color: 'yellow'
+  color: 'blue'
 
 inputs:
   docker-registry:

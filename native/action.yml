@@ -1,8 +1,8 @@
-name: 'Python package action'
-description: 'Create Python application packages: source, wheel and Debian distributions'
+name: 'Python platform independent package action'
+description: 'Create platform independent Python distribution packages with wheel, FPM and dh-virtualenv support'
 branding:
   icon: 'package'
-  color: 'yellow'
+  color: 'white'
 
 inputs:
   python-version:
@@ -26,7 +26,7 @@ inputs:
     required: false
     default: 'fpm -s python -t deb --package dist --force --log warn --python-bin python3 --python-package-name-prefix python3 setup.py'
   debian-app-command:
-    description: 'Debian application build command (dh_virtualenv available)'
+    description: 'Debian application build command (dh-virtualenv available)'
     required: false
     default: 'dpkg-buildpackage -us -ui -uc --buildinfo-option=-udist --buildinfo-option=-Odist/package.buildinfo --changes-option=-udist --changes-option=-Odist/package.changes'
 
