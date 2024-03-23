@@ -22,7 +22,6 @@ inputs:
   devcontainer-command:
     description: 'Devcontainer run command'
     required: false
-    default: '.devcontainer/build.sh'
 
 runs:
   using: 'composite'
