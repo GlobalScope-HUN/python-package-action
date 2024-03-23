@@ -5,8 +5,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test-library:
-    name: Test creating library packages
+  test-native-library:
+    name: Test creating native library packages
 
     runs-on: ubuntu-latest
 
@@ -27,8 +27,8 @@ jobs:
           ls dist/test_module-1.0.0-py3-none-linux_x86_64.whl
           ls dist/python3-test-module_1.0.0_all.deb
 
-  test-application:
-    name: Test creating application packages
+  test-native-application:
+    name: Test creating native application packages
 
     runs-on: ubuntu-latest
 

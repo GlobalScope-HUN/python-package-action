@@ -17,29 +17,27 @@ inputs:
   python-version:
     description: 'Python version'
     required: false
+    default: '3.9'
   add-source-dist:
     description: 'Should create source distribution?'
     required: false
+    default: 'true'
   add-wheel-dist:
     description: 'Should create wheel distribution?'
     required: false
-  add-debian-dist:
-    description: 'Should create debian distribution?'
-    required: false
+    default: 'true'
   debian-dist-type:
     description: 'Debian distribution type (application / library / none)'
     required: false
     default: 'none'
-  debian-lib-command:
-    description: 'Debian library build command (FPM available)'
-    required: false
-  debian-app-command:
-    description: 'Debian application build command (dh_virtualenv available)'
+  debian-dist-command:
+    description: 'Debian build command'
     required: false
 
   docker-registry:
     description: 'Docker registry'
     required: false
+    default: 'docker.io'
   docker-username:
     description: 'Docker registry username'
     required: false
@@ -47,11 +45,13 @@ inputs:
     description: 'Docker registry password'
     required: false
   devcontainer-config:
-    description: 'Devcontainer config selector'
+    description: 'Devcontainer config selector (eg. architecture, OS, etc.)'
     required: false
+    default: '.'
   devcontainer-command:
     description: 'Devcontainer run command'
     required: false
+    default: '.devcontainer/build.sh'
 
 outputs:
   upload-name:
@@ -67,16 +67,16 @@ runs:
       run: |
         VERSION_REGEX="^[0-9]+\.[0-9]+\.[0-9]+$"
         if [[ "${{ inputs.package-version }}" =~ $VERSION_REGEX ]]; then
-          echo ::set-env name=VERSION::${{ inputs.package-version }}
+          echo "VERSION=${{ inputs.package-version }}" >> $GITHUB_ENV
         elif [[ "${GITHUB_REF#refs/tags/v}" =~ $VERSION_REGEX ]]; then
-          echo ::set-env name=VERSION::$(echo ${GITHUB_REF#refs/tags/v})
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
         else
           echo "Error: Invalid version"
           exit 1
         fi
     - name: Update version in setup.py
       shell: bash
-      run: sed -i "s/version='.*',/version='${VERSION}',/" setup.py
+      run: sed -i "s/version='.*',/version='$VERSION',/" setup.py
     - if: ${{ inputs.debian-dist-type == 'application' }}
       name: Update version in debian/changelog
       shell: bash
@@ -85,7 +85,7 @@ runs:
         sudo apt-get install -y devscripts
         export DEBEMAIL="action@github.com"
         export DEBFULLNAME="GitHub Action"
-        dch -v $VERSION -D stable "Release ${VERSION}"
+        dch -v $VERSION -D stable "Release $VERSION"
 
     - if: ${{ inputs.is-cross-platform != 'true' }}
       name: Build native or platform independent packages
@@ -95,8 +95,7 @@ runs:
         add-source-dist: ${{ inputs.add-source-dist }}
         add-wheel-dist: ${{ inputs.add-wheel-dist }}
         debian-dist-type: ${{ inputs.debian-dist-type }}
-        debian-lib-command: ${{ inputs.debian-lib-command }}
-        debian-app-command: ${{ inputs.debian-app-command }}
+        debian-dist-command: ${{ inputs.debian-dist-command }}
 
     - if: ${{ inputs.is-cross-platform == 'true' }}
       name: Build cross platform packages via devcontainer
@@ -113,14 +112,15 @@ runs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git diff --exit-code || git commit -am "Update version to ${VERSION}"
+        git diff --exit-code || git commit -am "Update version to $VERSION"
     - name: Push changes
       uses: ad-m/github-push-action@master
-      if: ${{ success() }}
+      if: ${{ !github.event.act && success() }}
       with:
         github_token: ${{ github.token }}
     - name: Publish distributions
       uses: actions/upload-artifact@v4
+      if: ${{ !github.event.act }}
       with:
         name: ${{ github.event.repository.name }}
         path: dist/*

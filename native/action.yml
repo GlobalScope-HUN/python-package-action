@@ -21,14 +21,9 @@ inputs:
     description: 'Debian distribution type (application / library / none)'
     required: false
     default: 'none'
-  debian-lib-command:
-    description: 'Debian library build command (FPM available)'
+  debian-dist-command:
+    description: 'Debian build command'
     required: false
-    default: 'fpm -s python -t deb --package dist --force --log warn --python-bin python3 --python-package-name-prefix python3 setup.py'
-  debian-app-command:
-    description: 'Debian application build command (dh-virtualenv available)'
-    required: false
-    default: 'dpkg-buildpackage -us -ui -uc -tc'
 
 runs:
   using: 'composite'
@@ -51,7 +46,12 @@ runs:
         sudo apt-get install -y ruby ruby-dev rubygems build-essential
         sudo gem install -N fpm
         
-        eval sudo -E ${{ inputs.debian-lib-command }}
+        COMMAND=${{ inputs.debian-dist-command }}
+        
+        # Default FPM command
+        COMMAND=${COMMAND:-"fpm -s python -t deb --package dist --force --log warn --python-bin python3 --python-package-name-prefix python3 setup.py"}
+        
+        eval sudo -E $COMMAND
     - if: ${{ inputs.debian-dist-type == 'application' }}
       name: Create debian distribution (application)
       shell: bash
@@ -59,12 +59,17 @@ runs:
         sudo apt-get update
         sudo apt-get install -y build-essential debhelper devscripts equivs dh-virtualenv python3-virtualenv
         
-        eval sudo -E ${{ inputs.debian-app-command }}
+        COMMAND=${{ inputs.debian-dist-command }}
+        
+        # Default dh-virtualenv command
+        COMMAND=${COMMAND:-"dpkg-buildpackage -us -ui -uc -tc"}
+        
+        eval sudo -E $COMMAND
         
         # Copy debian package to dist folder if generated out of tree
         cp -f ../*.deb dist
         
-        # Clean up dist folder
+        # Keep only .deb files
         shopt -s extglob
         rm -f dist/!(*.deb)
     - if: ${{ inputs.add-source-dist == 'true' }}
