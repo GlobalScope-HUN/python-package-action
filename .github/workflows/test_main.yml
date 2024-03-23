@@ -73,5 +73,5 @@ jobs:
       - name: Assert packages have created
         run: |
           set -e
-          ls dist/test-module-1.0.0.tar.gz
-          ls dist/test_module-1.0.0-py3-none-linux_aarch64.whl
+          ls dist/test-module-1.1.0.tar.gz
+          ls dist/test_module-1.1.0-py3-none-linux_aarch64.whl
